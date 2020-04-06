@@ -66,8 +66,7 @@ def train(config, train_dataset, model, tokenizer):
     logger.info("  Instantaneous batch size per GPU = %d",
                 config.per_gpu_train_batch_size)
     logger.info("  Total train batch size (w. parallel, distributed & accumulation) = %d",
-                config.train_batch_size * config.gradient_accumulation_steps
-                * (torch.distributed.get_world_size() if config.local_rank != -1 else 1))
+                config.train_batch_size * config.gradient_accumulation_steps)
     logger.info("  Gradient Accumulation steps = %d",
                 config.gradient_accumulation_steps)
     logger.info("  Total optimization steps = %d", t_total)
@@ -126,7 +125,7 @@ def evaluate(config, model, tokenizer, prefix=""):
     results = {}
     eval_dataset = load_and_cache_examples(config, tokenizer, evaluate=True)
 
-    if not os.path.exists(eval_output_dir) and config.local_rank in [-1, 0]:
+    if not os.path.exists(eval_output_dir):
         os.makedirs(eval_output_dir)
 
     config.eval_batch_size = config.per_gpu_eval_batch_size * max(1, config.n_gpu)

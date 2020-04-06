@@ -88,3 +88,24 @@ def nice_print(k):
 
 # both?: When the Mohammed cartoons -- published in September 2005 by the Danish newspaper Jyllands-Posten to defy rising self-censorship after van Gogh 's murder -- were answered by worldwide violence , only one major American (S:) newspaper , the Philadelphia Inquirer , (V1:) joined such European (O:) dailies as Die Welt and El País in (V2:) reprinting them as a gesture of free-speech solidarity .
 # Neither?: Actress Mia (S:) Farrow has arrived in Cambodia and plans to (V1:) defy a (O:) ban on (V2:) holding a ceremony at a former Khmer Rouge prison , as part of her campaign on Darfur , activists said Saturday .
+
+# splitting to train and dev:
+import random
+
+a = [v for k,v in d5.items() if v['class'] == 0]
+b = [v for k,v in d5.items() if v['class'] == 1]
+random.shuffle(a)
+random.shuffle(b)
+train = a[:119] + b[:31]
+dev = a[119:] + b[31:]
+random.shuffle(train)
+random.shuffle(dev)
+with open("train.tsv", "w") as f:
+    for i, x in enumerate(train):
+        f.write("\t".join([str(i), str(x['class']), "-".join(str(j) for j in list(x['offsets'])), x['text']]) + "\n")
+
+
+with open("dev.tsv", "w") as f:
+    for i, x in enumerate(dev):
+        f.write("\t".join([str(i + 150), str(x['class']), "-".join(str(j) for j in list(x['offsets'])), x['text']]) + "\n")
+

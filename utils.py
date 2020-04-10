@@ -110,10 +110,12 @@ class DataProcessor(object):
 def find_char_offsets(text, word_offsets):
     splited_text = text.split()
     ret = []
-    for arg in word_offsets:
+    for arg_str in word_offsets:
+        arg = int(arg_str)
         char_offset = sum(len(t) + len(" ") for t in splited_text[:arg])
         assert(text[char_offset: char_offset + len(splited_text[arg])] == splited_text[arg])
         ret.append(char_offset)
+    return ret
 
 
 class AdvclProcessor(DataProcessor):

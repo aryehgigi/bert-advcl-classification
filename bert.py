@@ -8,8 +8,7 @@ from tqdm import tqdm, trange
 
 import torch
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
-from transformers import BertModel, BertTokenizer
-from pytorch_transformers import AdamW, WarmupLinearSchedule
+from transformers import BertModel, AutoTokenizer, AdamW, get_linear_schedule_with_warmup
 
 from utils import compute_metrics, AdvclProcessor, convert_examples_to_features
 from config import Config
@@ -49,8 +48,8 @@ def train(config, train_dataset, model, tokenizer):
     ]
     optimizer = AdamW(optimizer_grouped_parameters,
                       lr=config.learning_rate, eps=config.adam_epsilon)
-    scheduler = WarmupLinearSchedule(
-        optimizer, warmup_steps=config.warmup_steps, t_total=t_total)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer, config.warmup_steps, t_total)
 
     # if fp16:
     #     try:
@@ -220,7 +219,7 @@ def main():
     set_seed(config.seed)
 
     # Prepare task
-    tokenizer = BertTokenizer.from_pretrained(config.pretrained_model_name, do_lower_case=config.do_lower)
+    tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name, use_fast=True, do_lower_case=config.do_lower)
     model = BertModel.from_pretrained(config.pretrained_model_name)
     model = AdvclTransformer(model)
     model.to(device)

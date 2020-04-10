@@ -37,13 +37,23 @@ from sklearn.metrics import matthews_corrcoef, f1_score
 
 logger = logging.getLogger(__name__)
 
+cleaning_map = {'-RRB-': ')', '-LRB-': '(', '-LSB-': '[', '-RSB-': ']', '-LCB-': '{', '-RCB-': '}',
+               '&nbsp;': ' ', '&quot;': "'", '--': '-', '---': '-'}
+
+
+def clean_tokens(tokens):
+    return [cleaning_map.get(x, x) for x in tokens]
+
 
 class InputExample(object):
     def __init__(self, guid, text, args_char_offset, label=None):
         self.guid = guid
         self.text = text
-        self.args_char_offset = args_char_offset
+        self.arg1_char_offset = args_char_offset[0]
+        self.arg2_char_offset = args_char_offset[1]
+        self.pred_char_offset = args_char_offset[3] # TODO - this is 3 because we have the main predicate in location 2
         self.label = label
+
 
 class InputFeatures(object):
     def __init__(self, input_ids, input_mask, segment_ids, args_indices, label_id):
@@ -62,7 +72,11 @@ def convert_examples_to_features(examples, tokenizer):
         
         # find the tokens of interesting args
         tokens = tokenizer.convert_ids_to_tokens(tokenized['input_ids'])
-        for i, (tok, (c_s, c_e)) in enumerate(zip(tokens, tokenized['offset_mapping'])):
+        for i, (tok, offsets) in enumerate(zip(tokens, tokenized['offset_mapping'])):
+            if not offsets:
+                assert ((tok == "[CLS]") or (tok == "[SEP]"))
+                continue
+            c_s, c_e = offsets
             if c_s == example.arg1_char_offset:
                 arg1 = i
             elif c_s == example.arg2_char_offset:
@@ -146,7 +160,7 @@ class AdvclProcessor(DataProcessor):
                 continue
             guid = int(line[0])
             label = int(line[1])
-            text = line[3]
+            text = " ".join(clean_tokens(line[3].split()))
             args_char_offset = find_char_offsets(text, line[2].split("-"))
             examples.append(
                 InputExample(guid=guid, text=text, args_char_offset=args_char_offset, label=label))

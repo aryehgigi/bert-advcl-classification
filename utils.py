@@ -51,7 +51,7 @@ class InputExample(object):
         self.text = text
         self.arg1_char_offset = args_char_offset[0]
         self.arg2_char_offset = args_char_offset[1]
-        self.pred_char_offset = args_char_offset[3] # TODO - this is 3 because we have the main predicate in location 2
+        self.pred_char_offset = args_char_offset[3]  # TODO - this is 3 because we have the main predicate in location 2
         self.label = label
 
 
@@ -68,7 +68,7 @@ def convert_examples_to_features(examples, tokenizer):
     features = []
     
     for example in examples:
-        tokenized = tokenizer.encode_plus(example.text, return_offsets_mapping=True)
+        tokenized = tokenizer.encode_plus(example.text, return_offsets_mapping=True, pad_to_max_length=True)
         
         # find the tokens of interesting args
         tokens = tokenizer.convert_ids_to_tokens(tokenized['input_ids'])

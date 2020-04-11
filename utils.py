@@ -40,6 +40,8 @@ logger = logging.getLogger(__name__)
 cleaning_map = {'-RRB-': ')', '-LRB-': '(', '-LSB-': '[', '-RSB-': ']', '-LCB-': '{', '-RCB-': '}',
                '&nbsp;': ' ', '&quot;': "'", '--': '-', '---': '-'}
 
+MAX_SEQ_LEN = 128
+
 
 def clean_tokens(tokens):
     return [cleaning_map.get(x, x) for x in tokens]
@@ -87,9 +89,9 @@ def convert_examples_to_features(examples, tokenizer):
         assert arg1 is not None and arg2 is not None and pred is not None
         
         features.append(InputFeatures(
-            input_ids=tokenized['input_ids'],
-            input_mask=tokenized['attention_mask'],
-            segment_ids=tokenized['token_type_ids'],
+            input_ids=tokenized['input_ids'] + ([tokenizer.pad_token_id] * (MAX_SEQ_LEN - len(tokenized['input_ids']))),
+            input_mask=tokenized['attention_mask'] + ([0] * (MAX_SEQ_LEN - len(tokenized['attention_mask']))),
+            segment_ids=tokenized['token_type_ids'] + ([0] * (MAX_SEQ_LEN - len(tokenized['token_type_ids']))),
             args_indices=(arg1, arg2, pred),
             label_id=int(example.label)))
     return features

@@ -40,6 +40,7 @@ class AdvclTransformer(torch.nn.Module):
         outputs = (logits,) + transformer_outputs[2:]
         
         if labels is not None:
+            labels = labels.type(torch.cuda.FloatTensor)
             loss_fct = BCELoss(self.class_weights)
             loss = loss_fct(logits, labels)  # TODO
             outputs = (loss,) + outputs

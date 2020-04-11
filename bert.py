@@ -164,7 +164,6 @@ def evaluate(config, model, tokenizer, device, prefix=""):
                 out_label_ids, inputs['labels'].detach().cpu().numpy(), axis=0)
 
     eval_loss = eval_loss / nb_eval_steps
-    preds = np.argmax(preds, axis=1)
     result = compute_metrics(preds, out_label_ids)
     results.update(result)
     logger.info("***** Eval results {} *****".format(prefix))
@@ -232,16 +231,16 @@ def main():
     if not os.path.exists(config.output_dir):
         os.makedirs(config.output_dir)
 
-    logger.info("Saving model checkpoint to %s", config.output_dir)
-    # Save a trained model, configuration and tokenizer using `save_pretrained()`.
-    # They can then be reloaded using `from_pretrained()`
-    # Take care of distributed/parallel training
-    model_to_save = model.module if hasattr(model, 'module') else model
-    model_to_save.save_pretrained(config.output_dir)
-    tokenizer.save_pretrained(config.output_dir)
-
-    # Good practice: save your training arguments together with the trained model
-    torch.save(config, os.path.join(config.output_dir, 'training_config.bin'))
+    # logger.info("Saving model checkpoint to %s", config.output_dir)
+    # # Save a trained model, configuration and tokenizer using `save_pretrained()`.
+    # # They can then be reloaded using `from_pretrained()`
+    # # Take care of distributed/parallel training
+    # model_to_save = model.module if hasattr(model, 'module') else model
+    # model_to_save.save_pretrained(config.output_dir)
+    # tokenizer.save_pretrained(config.output_dir)
+    #
+    # # Good practice: save your training arguments together with the trained model
+    # torch.save(config, os.path.join(config.output_dir, 'training_config.bin'))
 
     # # Load a trained model and vocabulary that you have fine-tuned
     # model = BertForSequenceClassification.from_pretrained(

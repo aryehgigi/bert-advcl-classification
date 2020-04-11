@@ -158,8 +158,6 @@ class AdvclProcessor(DataProcessor):
         examples = []
         for (i, line) in enumerate(lines):
             logger.info(line)
-            if i == 0:
-                continue
             guid = int(line[0])
             label = int(line[1])
             text = " ".join(clean_tokens(line[3].split()))
@@ -176,10 +174,12 @@ def simple_accuracy(preds, labels):
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
     f1 = f1_score(y_true=labels, y_pred=preds, average='micro')
+    mat = matthews_corrcoef(y_true=labels, y_pred=preds)
     return {
         "acc": acc,
         "f1": f1,
         "acc_and_f1": (acc + f1) / 2,
+        "mcc": mat
     }
 
 

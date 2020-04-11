@@ -164,7 +164,7 @@ def evaluate(config, model, tokenizer, device, prefix=""):
                 out_label_ids, inputs['labels'].detach().cpu().numpy(), axis=0)
 
     eval_loss = eval_loss / nb_eval_steps
-    result = compute_metrics(preds, out_label_ids)
+    result = compute_metrics(torch.round(preds), out_label_ids)
     results.update(result)
     logger.info("***** Eval results {} *****".format(prefix))
     for key in sorted(result.keys()):

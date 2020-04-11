@@ -25,7 +25,7 @@ def set_seed(seed):
     torch.cuda.manual_seed_all(seed)
 
 
-def train(config, train_dataset, model, tokenizer):
+def train(config, train_dataset, model, tokenizer, device):
     """ Train the model """
     config.train_batch_size = config.per_gpu_train_batch_size
     train_sampler = RandomSampler(train_dataset)
@@ -80,7 +80,7 @@ def train(config, train_dataset, model, tokenizer):
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=False)
         for step, batch in enumerate(epoch_iterator):
             model.train()
-            batch = tuple(t.to(config.device) for t in batch)
+            batch = tuple(t.to(device) for t in batch)
             inputs = {'input_ids':      batch[0],
                       'attention_mask': batch[1],
                       'token_type_ids': batch[2],
@@ -91,8 +91,6 @@ def train(config, train_dataset, model, tokenizer):
             outputs = model(**inputs)
             # model outputs are always tuple in pytorch-transformers (see doc)
             loss = outputs[0]
-            if config.n_gpu > 1:
-                loss = loss.mean()  # mean() to average on multi-gpu parallel training
             if config.gradient_accumulation_steps > 1:
                 loss = loss / config.gradient_accumulation_steps
 
@@ -117,7 +115,7 @@ def train(config, train_dataset, model, tokenizer):
     return global_step, tr_loss / global_step
 
 
-def evaluate(config, model, tokenizer, prefix=""):
+def evaluate(config, model, tokenizer, device, prefix=""):
     # Loop to handle MNLI double evaluation (matched, mis-matched)
     eval_output_dir = config.output_dir
 
@@ -127,7 +125,7 @@ def evaluate(config, model, tokenizer, prefix=""):
     if not os.path.exists(eval_output_dir):
         os.makedirs(eval_output_dir)
 
-    config.eval_batch_size = config.per_gpu_eval_batch_size * max(1, config.n_gpu)
+    config.eval_batch_size = config.per_gpu_eval_batch_size
     # Note that DistributedSampler samples randomly
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(
@@ -143,7 +141,7 @@ def evaluate(config, model, tokenizer, prefix=""):
     out_label_ids = None
     model.eval()
     for batch in tqdm(eval_dataloader, desc="Evaluating"):
-        batch = tuple(t.to(config.device) for t in batch)
+        batch = tuple(t.to(device) for t in batch)
 
         with torch.no_grad():
             inputs = {'input_ids':      batch[0],
@@ -226,7 +224,7 @@ def main():
 
     # Training
     train_dataset = load_and_cache_examples(config, tokenizer, evaluate=False)
-    global_step, tr_loss = train(config, train_dataset, model, tokenizer)
+    global_step, tr_loss = train(config, train_dataset, model, tokenizer, device)
     logger.info("global_step = %s, average loss = %s", global_step, tr_loss)
 
     # Saving best-practices: if you use defaults names for the model, you can reload it using from_pretrained()
@@ -253,7 +251,7 @@ def main():
     # model.to(config.device)
 
     # Evaluation
-    result = evaluate(config, model, tokenizer)
+    result = evaluate(config, model, tokenizer, device)
 
     return result
 

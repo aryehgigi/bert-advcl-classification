@@ -174,10 +174,16 @@ def simple_accuracy(preds, labels):
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
     f1 = f1_score(y_true=labels, y_pred=preds, average='micro')
+    f2 = f1_score(y_true=labels, y_pred=preds, average='macro')
+    f3 = f1_score(y_true=labels, y_pred=preds, average='weighted')
+    f4 = f1_score(y_true=labels, y_pred=preds, average='binary')
     mat = matthews_corrcoef(y_true=labels, y_pred=preds)
     return {
         "acc": acc,
         "f1": f1,
+        "f2": f2,
+        "f3": f3,
+        "f4": f4,
         "acc_and_f1": (acc + f1) / 2,
         "mcc": mat
     }

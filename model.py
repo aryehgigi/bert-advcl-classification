@@ -47,14 +47,14 @@ class AdvclTransformer(torch.nn.Module):
         out_a = self.relua2(self.fca2(self.relua(self.fca1(outputa)).view([16,2*512]))).squeeze()
         out_b = self.relub2(self.fcb2(self.relub(self.fcb1(outputb)).view([16,2*512]))).squeeze()
         combined = torch.stack([out_a, out_b], axis=1)
-        logits = self.softmax(combined)[:,1].squeeze()
+        logits = self.softmax(combined)
 
         outputs = (logits,) + transformer_outputs[2:]
         
         if labels is not None:
             labels = labels.type(torch.cuda.FloatTensor)
             loss_fct = CrossEntropyLoss(self.class_weights)
-            loss = loss_fct(logits, labels)
+            loss = loss_fct(logits, labels.cuda.type(LongTensor))
             outputs = (loss,) + outputs
         
         return outputs

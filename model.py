@@ -14,14 +14,14 @@ class AdvclTransformer(torch.nn.Module):
         
         # added model  # TODO - revisit
         self.fca1 = torch.nn.Linear(self.input_size, int(self.hidden_size/2))
-        self.relua = torch.nn.ReLU()
+        self.relua = torch.nn.ELU()
         self.fca2 = torch.nn.Linear(int(self.hidden_size/2), 1)
-        self.relua2 = torch.nn.ReLU()
+        self.relua2 = torch.nn.ELU()
 
         self.fcb1 = torch.nn.Linear(self.input_size, int(self.hidden_size / 2))
-        self.relub = torch.nn.ReLU()
+        self.relub = torch.nn.ELU()
         self.fcb2 = torch.nn.Linear(int(self.hidden_size / 2), 1)
-        self.relub2 = torch.nn.ReLU()
+        self.relub2 = torch.nn.ELU()
         
         self.softmax = torch.nn.Softmax(dim=1)
         

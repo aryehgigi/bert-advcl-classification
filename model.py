@@ -54,7 +54,7 @@ class AdvclTransformer(torch.nn.Module):
         if labels is not None:
             labels = labels.type(torch.cuda.FloatTensor)
             loss_fct = CrossEntropyLoss(self.class_weights)
-            loss = loss_fct(logits, labels.cuda.type(LongTensor))
+            loss = loss_fct(logits, labels.type(torch.cuda.LongTensor))
             outputs = (loss,) + outputs
         
         return outputs

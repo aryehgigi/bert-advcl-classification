@@ -23,7 +23,7 @@ class AdvclTransformer(torch.nn.Module):
         self.fcb2 = torch.nn.Linear(int(self.hidden_size), 1)
         self.relub2 = torch.nn.ELU()
         
-        self.softmax = torch.nn.Softmax(dim=1)
+        self.softmax = torch.nn.Softmax(dim=-1)
         
         self.transformer = base_model
         self.class_weights = class_weights
@@ -46,7 +46,7 @@ class AdvclTransformer(torch.nn.Module):
         # logits = self.sigmoid(self.fc3(self.relu2(self.fc2(self.relu(self.fc1(output)))).squeeze()[:,[0,1]])).squeeze()
         out_a = self.relua2(self.fca2(self.relua(self.fca1(outputa)).view(-1, self.hidden_size))).squeeze()
         out_b = self.relub2(self.fcb2(self.relub(self.fcb1(outputb)).view(-1, self.hidden_size))).squeeze()
-        combined = torch.stack([out_a, out_b], axis=1)
+        combined = torch.stack([out_a, out_b], axis=-1)
         logits = self.softmax(combined)
 
         outputs = (logits,) + transformer_outputs[2:]

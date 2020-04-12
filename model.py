@@ -44,8 +44,8 @@ class AdvclTransformer(torch.nn.Module):
         outputb = torch.stack(batched_catb)
 
         # logits = self.sigmoid(self.fc3(self.relu2(self.fc2(self.relu(self.fc1(output)))).squeeze()[:,[0,1]])).squeeze()
-        out_a = self.relua2(self.fca2(self.relua(self.fca1(outputa)).view([16,2*512]))).squeeze()
-        out_b = self.relub2(self.fcb2(self.relub(self.fcb1(outputb)).view([16,2*512]))).squeeze()
+        out_a = self.relua2(self.fca2(self.relua(self.fca1(outputa)).view(-1, self.hidden_size))).squeeze()
+        out_b = self.relub2(self.fcb2(self.relub(self.fcb1(outputb)).view(-1, self.hidden_size))).squeeze()
         combined = torch.stack([out_a, out_b], axis=1)
         logits = self.softmax(combined)
 

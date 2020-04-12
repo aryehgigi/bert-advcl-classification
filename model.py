@@ -15,12 +15,12 @@ class AdvclTransformer(torch.nn.Module):
         # added model  # TODO - revisit
         self.fca1 = torch.nn.Linear(self.input_size, int(self.hidden_size/2))
         self.relua = torch.nn.ELU()
-        self.fca2 = torch.nn.Linear(int(self.hidden_size/2), 1)
+        self.fca2 = torch.nn.Linear(int(self.hidden_size), 1)
         self.relua2 = torch.nn.ELU()
 
         self.fcb1 = torch.nn.Linear(self.input_size, int(self.hidden_size / 2))
         self.relub = torch.nn.ELU()
-        self.fcb2 = torch.nn.Linear(int(self.hidden_size / 2), 1)
+        self.fcb2 = torch.nn.Linear(int(self.hidden_size), 1)
         self.relub2 = torch.nn.ELU()
         
         self.softmax = torch.nn.Softmax(dim=1)
@@ -44,8 +44,8 @@ class AdvclTransformer(torch.nn.Module):
         outputb = torch.stack(batched_catb)
 
         # logits = self.sigmoid(self.fc3(self.relu2(self.fc2(self.relu(self.fc1(output)))).squeeze()[:,[0,1]])).squeeze()
-        out_a = self.relua2(self.fca2(self.relua(self.fca1(outputa))))
-        out_b = self.relub2(self.fcb2(self.relub(self.fcb1(outputb))))
+        out_a = self.relua2(self.fca2(self.relua(self.fca1(outputa)).view([16,2*512]))).squeeze()
+        out_b = self.relub2(self.fcb2(self.relub(self.fcb1(outputb)).view([16,2*512]))).squeeze()
         combined = torch.stack([out_a, out_b], axis=1)
         logits = self.softmax(combined)[:,1].squeeze()
 

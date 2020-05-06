@@ -77,7 +77,7 @@ def convert_examples_to_features(examples, tokenizer):
         tokens = tokenizer.convert_ids_to_tokens(tokenized['input_ids'])
         for i, (tok, offsets) in enumerate(zip(tokens, tokenized['offset_mapping'])):
             if not offsets:
-                assert ((tok == "[CLS]") or (tok == "[SEP]"))
+                assert ((tok == "<s>") or (tok == "</s>"))
                 continue
             c_s, c_e = offsets
             if c_s == example.arg1_char_offset:

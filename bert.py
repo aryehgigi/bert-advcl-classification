@@ -83,12 +83,19 @@ def train(config, train_dataset, model, tokenizer, device):
         for step, batch in enumerate(epoch_iterator):
             model.train()
             batch = tuple(t.to(device) for t in batch)
-            inputs = {'input_ids':      batch[0],
-                      'attention_mask': batch[1],
-                      'token_type_ids': batch[2],
-                      'args_indices': batch[3],
-                      'labels':      batch[4],
-                      }
+            if len(batch) == 4:
+                inputs = {'input_ids': batch[0],
+                          'attention_mask': batch[1],
+                          'args_indices': batch[2],
+                          'labels': batch[3],
+                          }
+            else:
+                inputs = {'input_ids': batch[0],
+                          'attention_mask': batch[1],
+                          'token_type_ids': batch[2],
+                          'args_indices': batch[3],
+                          'labels': batch[4],
+                          }
 
             outputs = model(**inputs)
             # model outputs are always tuple in pytorch-transformers (see doc)
@@ -149,12 +156,19 @@ def evaluate(config, model, tokenizer, device, prefix=""):
         batch = tuple(t.to(device) for t in batch)
 
         with torch.no_grad():
-            inputs = {'input_ids':      batch[0],
-                      'attention_mask': batch[1],
-                      'token_type_ids': batch[2],
-                      'args_indices': batch[3],
-                      'labels':      batch[4],
-                      }
+            if len(batch) == 4:
+                inputs = {'input_ids':      batch[0],
+                          'attention_mask': batch[1],
+                          'args_indices': batch[2],
+                          'labels':      batch[3],
+                          }
+            else:
+                inputs = {'input_ids':      batch[0],
+                          'attention_mask': batch[1],
+                          'token_type_ids': batch[2],
+                          'args_indices': batch[3],
+                          'labels':      batch[4],
+                          }
             outputs = model(**inputs)
             tmp_eval_loss, logits = outputs[:2]
 
@@ -195,10 +209,13 @@ def load_and_cache_examples(config, tokenizer, evaluate=False):
     # Convert to Tensors and build dataset
     all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
     all_input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
-    all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
     all_args_indices = torch.tensor([f.args_indices for f in features], dtype=torch.long)
     all_label_ids = torch.tensor([f.label_id for f in features], dtype=torch.long)
-    dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_args_indices, all_label_ids)
+    if features[0].segment_ids is None:
+        dataset = TensorDataset(all_input_ids, all_input_mask, all_args_indices, all_label_ids)
+    else:
+        all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
+        dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_args_indices, all_label_ids)
     return dataset
 
 

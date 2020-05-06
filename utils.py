@@ -80,13 +80,13 @@ def convert_examples_to_features(examples, tokenizer):
                 assert ((tok == "<s>") or (tok == "</s>"))
                 continue
             c_s, c_e = offsets
-            if c_s == example.arg1_char_offset:
+            if c_s + (1 if tok.startswith('Ġ') else 0) == example.arg1_char_offset:
                 arg1 = i
-            elif c_s == example.arg2_char_offset:
+            elif c_s + (1 if tok.startswith('Ġ') else 0) == example.arg2_char_offset:
                 arg2 = i
-            elif c_s == example.pred_char_offset:
+            elif c_s + (1 if tok.startswith('Ġ') else 0) == example.pred_char_offset:
                 pred = i
-            elif c_s == example.main_char_offset:
+            elif c_s + (1 if tok.startswith('Ġ') else 0) == example.main_char_offset:
                 main = i
         
         assert arg1 is not None and arg2 is not None and pred is not None
@@ -94,7 +94,7 @@ def convert_examples_to_features(examples, tokenizer):
         features.append(InputFeatures(
             input_ids=tokenized['input_ids'] + ([tokenizer.pad_token_id] * (MAX_SEQ_LEN - len(tokenized['input_ids']))),
             input_mask=tokenized['attention_mask'] + ([0] * (MAX_SEQ_LEN - len(tokenized['attention_mask']))),
-            segment_ids=tokenized['token_type_ids'] + ([0] * (MAX_SEQ_LEN - len(tokenized['token_type_ids']))),
+            segment_ids=(tokenized['token_type_ids'] + ([0] * (MAX_SEQ_LEN - len(tokenized['token_type_ids'])))) if 'token_type_ids' in tokenized else None,
             args_indices=(arg1, arg2, main, pred),
             label_id=int(example.label)))
     return features

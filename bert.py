@@ -76,8 +76,10 @@ def train(config, train_dataset, model, tokenizer, device):
     train_iterator = trange(int(config.num_train_epochs), desc="Epoch", disable=False)
     # Added here for reproductibility (even between python 2 and 3)
     set_seed(config.seed)
+    lo = []
     for _ in train_iterator:
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=False)
+        lo2 = []
         for step, batch in enumerate(epoch_iterator):
             model.train()
             batch = tuple(t.to(device) for t in batch)
@@ -91,6 +93,7 @@ def train(config, train_dataset, model, tokenizer, device):
             outputs = model(**inputs)
             # model outputs are always tuple in pytorch-transformers (see doc)
             loss = outputs[0]
+            lo2.append(loss.item())
             if config.gradient_accumulation_steps > 1:
                 loss = loss / config.gradient_accumulation_steps
 
@@ -112,6 +115,8 @@ def train(config, train_dataset, model, tokenizer, device):
         if config.max_steps > 0 and global_step > config.max_steps:
             train_iterator.close()
             break
+        lo.append(sum(lo2)/len(lo2))
+    print(lo)
     return global_step, tr_loss / global_step
 
 
@@ -174,6 +179,7 @@ def evaluate(config, model, tokenizer, device, prefix=""):
     #     for key in range(len(preds)):
     #         writer.write("%d\t%s\n" %
     #                      (key+8001, str(RELATION_LABELS[preds[key]])))
+    print(*zip(preds, out_label_ids))
     return result
 
 

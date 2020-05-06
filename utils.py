@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 cleaning_map = {'-RRB-': ')', '-LRB-': '(', '-LSB-': '[', '-RSB-': ']', '-LCB-': '{', '-RCB-': '}',
                '&nbsp;': ' ', '&quot;': "'", '--': '-', '---': '-'}
 
-MAX_SEQ_LEN = 128
+MAX_SEQ_LEN = 160
 
 
 def clean_tokens(tokens):
@@ -53,7 +53,8 @@ class InputExample(object):
         self.text = text
         self.arg1_char_offset = args_char_offset[0]
         self.arg2_char_offset = args_char_offset[1]
-        self.pred_char_offset = args_char_offset[3]  # TODO - this is 3 because we have the main predicate in location 2
+        self.main_char_offset = args_char_offset[2]
+        self.pred_char_offset = args_char_offset[3]
         self.label = label
 
 
@@ -85,6 +86,8 @@ def convert_examples_to_features(examples, tokenizer):
                 arg2 = i
             elif c_s == example.pred_char_offset:
                 pred = i
+            elif c_s == example.main_char_offset:
+                main = i
         
         assert arg1 is not None and arg2 is not None and pred is not None
         
@@ -92,7 +95,7 @@ def convert_examples_to_features(examples, tokenizer):
             input_ids=tokenized['input_ids'] + ([tokenizer.pad_token_id] * (MAX_SEQ_LEN - len(tokenized['input_ids']))),
             input_mask=tokenized['attention_mask'] + ([0] * (MAX_SEQ_LEN - len(tokenized['attention_mask']))),
             segment_ids=tokenized['token_type_ids'] + ([0] * (MAX_SEQ_LEN - len(tokenized['token_type_ids']))),
-            args_indices=(arg1, arg2, pred),
+            args_indices=(arg1, arg2, main, pred),
             label_id=int(example.label)))
     return features
 
@@ -115,7 +118,7 @@ class DataProcessor(object):
     @classmethod
     def _read_tsv(cls, input_file):
         """Reads a tab separated value file."""
-        with open(input_file, "r") as f:
+        with open(input_file, "r", encoding="cp1252") as f:
             pre_lines = f.readlines()
             post_lines = []
             for line in pre_lines:

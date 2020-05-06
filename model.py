@@ -1,5 +1,5 @@
 import torch
-from torch.nn import CrossEntropyLoss
+from torch.nn import CrossEntropyLoss, BCELoss
 
 
 class AdvclTransformer(torch.nn.Module):
@@ -15,13 +15,17 @@ class AdvclTransformer(torch.nn.Module):
         # added model  # TODO - revisit
         self.fca1 = torch.nn.Linear(self.input_size, int(self.hidden_size/2))
         self.relua = torch.nn.ELU()
-        self.fca2 = torch.nn.Linear(int(self.hidden_size), 1)
+        self.fca2 = torch.nn.Linear(int(self.hidden_size), int(self.hidden_size/2))
         self.relua2 = torch.nn.ELU()
+        self.fca3 = torch.nn.Linear(int(self.hidden_size/2), 1)
+        self.sigmoida = torch.nn.Sigmoid()
 
         self.fcb1 = torch.nn.Linear(self.input_size, int(self.hidden_size / 2))
         self.relub = torch.nn.ELU()
-        self.fcb2 = torch.nn.Linear(int(self.hidden_size), 1)
+        self.fcb2 = torch.nn.Linear(int(self.hidden_size), int(self.hidden_size/2))
         self.relub2 = torch.nn.ELU()
+        self.fcb3 = torch.nn.Linear(int(self.hidden_size/2), 1)
+        self.sigmoidb = torch.nn.Sigmoid()
         
         self.softmax = torch.nn.Softmax(dim=-1)
         
@@ -37,17 +41,19 @@ class AdvclTransformer(torch.nn.Module):
 
         batched_cata = []
         batched_catb = []
-        for i, (arg1_index, arg2_index, predicate_index) in enumerate(args_indices):
+        for i, (arg1_index, arg2_index, main_index, predicate_index) in enumerate(args_indices):
             batched_cata.append(output[i, [arg1_index, predicate_index]])
             batched_catb.append(output[i, [arg2_index, predicate_index]])
         outputa = torch.stack(batched_cata)
         outputb = torch.stack(batched_catb)
 
-        # logits = self.sigmoid(self.fc3(self.relu2(self.fc2(self.relu(self.fc1(output)))).squeeze()[:,[0,1]])).squeeze()
-        out_a = self.relua2(self.fca2(self.relua(self.fca1(outputa)).view(-1, self.hidden_size))).squeeze()
-        out_b = self.relub2(self.fcb2(self.relub(self.fcb1(outputb)).view(-1, self.hidden_size))).squeeze()
+        out_a = self.sigmoida(self.fca3(self.relua2(self.fca2(self.relua(self.fca1(outputa)).view(-1, int(self.hidden_size)))))).squeeze()
+        out_b = self.sigmoidb(self.fcb3(self.relub2(self.fcb2(self.relub(self.fcb1(outputb)).view(-1, int(self.hidden_size)))))).squeeze()
         combined = torch.stack([out_a, out_b], axis=-1)
         logits = self.softmax(combined)
+        if len(logits.shape) == 1:
+            logits = logits.unsqueeze(0)
+        
 
         outputs = (logits,) + transformer_outputs[2:]
         

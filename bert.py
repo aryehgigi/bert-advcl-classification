@@ -8,7 +8,7 @@ from tqdm import tqdm, trange
 
 import torch
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler, TensorDataset)
-from transformers import RobertaModel, AutoTokenizer, AdamW, get_linear_schedule_with_warmup
+from transformers import RobertaModel, RobertaTokenizerFast, AdamW, get_linear_schedule_with_warmup
 
 from utils import compute_metrics, AdvclProcessor, convert_examples_to_features
 from config import Config
@@ -222,7 +222,7 @@ def main():
     set_seed(config.seed)
 
     # Prepare task
-    tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name, use_fast=True, do_lower_case=config.do_lower)
+    tokenizer = RobertaTokenizerFast.from_pretrained(config.pretrained_model_name, use_fast=True, do_lower_case=config.do_lower)
     model = RobertaModel.from_pretrained(config.pretrained_model_name)
     model = AdvclTransformer(model)
     model.to(device)

@@ -80,13 +80,13 @@ def convert_examples_to_features(examples, tokenizer):
                 assert ((tok == "<s>") or (tok == "</s>"))
                 continue
             c_s, c_e = offsets
-            if c_s + (1 if tok.startswith('Ġ') else 0) <= example.arg1_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
+            if c_s + (1 if tok.startswith('Ġ') else 0) <= example.arg1_char_offset < c_e:
                 arg1 = i
-            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.arg2_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
+            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.arg2_char_offset < c_e:
                 arg2 = i
-            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.pred_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
+            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.pred_char_offset < c_e:
                 pred = i
-            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.main_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
+            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.main_char_offset < c_e:
                 main = i
         
         assert arg1 is not None and arg2 is not None and pred is not None

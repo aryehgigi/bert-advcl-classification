@@ -80,13 +80,13 @@ def convert_examples_to_features(examples, tokenizer):
                 assert ((tok == "<s>") or (tok == "</s>"))
                 continue
             c_s, c_e = offsets
-            if c_s + (1 if tok.startswith('Ġ') else 0) == example.arg1_char_offset:
+            if c_s + (1 if tok.startswith('Ġ') else 0) <= example.arg1_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
                 arg1 = i
-            elif c_s + (1 if tok.startswith('Ġ') else 0) == example.arg2_char_offset:
+            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.arg2_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
                 arg2 = i
-            elif c_s + (1 if tok.startswith('Ġ') else 0) == example.pred_char_offset:
+            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.pred_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
                 pred = i
-            elif c_s + (1 if tok.startswith('Ġ') else 0) == example.main_char_offset:
+            elif c_s + (1 if tok.startswith('Ġ') else 0) <= example.main_char_offset <= c_e + (1 if tok.startswith('Ġ') else 0):
                 main = i
         
         assert arg1 is not None and arg2 is not None and pred is not None
@@ -164,7 +164,10 @@ class AdvclProcessor(DataProcessor):
             guid = int(line[0])
             label = int(line[1])
             text = " ".join(clean_tokens(line[3].split()))
-            args_char_offset = find_char_offsets(text, line[2].split("-"))
+            if guid < 1000:
+                args_char_offset = find_char_offsets(text, line[2].split("-"))
+            else:
+                args_char_offset = [int(i) for i in line[2].split('-')]
             examples.append(
                 InputExample(guid=guid, text=text, args_char_offset=args_char_offset, label=label))
         return examples
